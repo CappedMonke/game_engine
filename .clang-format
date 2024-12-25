@@ -1,0 +1,31 @@
+---
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Right
+AlignConsecutiveAssignments:
+  Enabled: true
+AlignConsecutiveBitFields:
+  Enabled: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+AlignConsecutiveMacros:
+  Enabled: true
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Allman
+EmptyLineBeforeAccessModifier: Always
+EmptyLineAfterAccessModifier: Always
+Language: Cpp
+PackConstructorInitializers: Never
+PointerAlignment: Left
+SortIncludes: CaseSensitive
+IndentWidth: 4
+AccessModifierOffset: -4
+AlignOperands: Align
+BreakBeforeBinaryOperators: NonAssignment
+AllowShortFunctionsOnASingleLine: None
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+UseTab: ForIndentation
+TabWidth: 4
+AlignEscapedNewlines: Left
+MaxEmptyLinesToKeep: 2
