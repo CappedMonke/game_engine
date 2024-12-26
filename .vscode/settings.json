@@ -1,0 +1,4 @@
+{
+    "C_Cpp.default.cppStandard": "gnu++23",
+    "C_Cpp.formatting": "clangFormat",
+}

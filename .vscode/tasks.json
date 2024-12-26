@@ -1,0 +1,88 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "configure_debug_clang",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset debug_clang"
+            ]
+        },
+        {
+            "label": "configure_debug_gnu",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset debug_gnu"
+            ]
+        },
+        {
+            "label": "configure_release_clang",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset release_clang"
+            ]
+        },
+        {
+            "label": "configure_release_gnu",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset release_gnu"
+            ]
+        },
+        {
+            "label": "configure_all",
+            "type": "shell",
+            "dependsOrder": "sequence",
+            "dependsOn":[
+                "configure_debug_clang",
+                "configure_debug_gnu",
+                "configure_release_clang",
+                "configure_release_gnu"
+            ]
+        },
+        {
+            "label": "build_debug_clang",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug_clang"
+            ]
+        },
+        {
+            "label": "build_debug_gnu",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug_gnu"
+            ]
+        },
+        {
+            "label": "build_release_clang",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "release_clang"
+            ]
+        },
+        {
+            "label": "build_release_gnu",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "release_gnu"
+            ]
+        }
+    ]
+}

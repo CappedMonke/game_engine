@@ -1,0 +1,89 @@
+{
+    "version": 10,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 31
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}"
+        },
+        {
+            "name": "debug_clang",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
+        {
+            "name": "debug_gnu",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
+            "name": "release_clang",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
+        {
+            "name": "release_gnu",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "jobs": 16
+        },
+        {
+            "name": "debug_clang",
+            "inherits": "default",
+            "configurePreset": "debug_clang"
+        },
+        {
+            "name": "debug_gnu",
+            "inherits": "default",
+            "configurePreset": "debug_gnu"
+        },
+        {
+            "name": "release_clang",
+            "inherits": "default",
+            "configurePreset": "release_clang"
+        },
+        {
+            "name": "release_gnu",
+            "inherits": "default",
+            "configurePreset": "release_gnu"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "hidden": true
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "default",
+            "hidden": true
+        }
+    ],
+    "workflowPresets": [
+
+    ]
+}
