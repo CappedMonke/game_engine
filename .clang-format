@@ -29,3 +29,5 @@ UseTab: ForIndentation
 TabWidth: 4
 AlignEscapedNewlines: Left
 MaxEmptyLinesToKeep: 2
+BreakConstructorInitializers: BeforeComma
+ColumnLimit: 100
