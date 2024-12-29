@@ -6,7 +6,10 @@ project(dawns_ballad LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SOURCES source/main.cpp)
+set(SOURCES 
+    source/main.cpp 
+    source/graphics/render_manager.cpp
+)
 
 # Add exectutables
 add_executable(dawns_ballad ${SOURCES})
