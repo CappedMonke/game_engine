@@ -15,15 +15,18 @@ add_executable(dawns_ballad ${SOURCES})
 
 # Include Vulkan
 find_package(Vulkan REQUIRED)
-target_include_directories(dawns_ballad PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_link_libraries(dawns_ballad PRIVATE ${Vulkan_LIBRARIES})
+target_include_directories(dawns_ballad PRIVATE ${Vulkan_INCLUDE_DIRS})
 
-# Include GLFW
+# Enable FetchContent module
 include(FetchContent)
+
+# Include SDL3
 FetchContent_Declare(
-    GLFW
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG 3.4
+    SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG preview-3.1.6
 )
-FetchContent_MakeAvailable(GLFW)
-target_link_libraries(dawns_ballad PRIVATE GLFW)
+FetchContent_MakeAvailable(SDL3)
+target_link_libraries(dawns_ballad PRIVATE SDL3::SDL3)
+target_include_directories(dawns_ballad PRIVATE ${SDL3_SOURCE_DIR}/include)
