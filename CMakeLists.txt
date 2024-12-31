@@ -5,12 +5,12 @@ project(dawns_ballad LANGUAGES CXX)
 # Set variables
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add exectutable
 set(SOURCES 
     source/main.cpp 
     source/graphics/render_manager.cpp
 )
-
-# Add exectutables
 add_executable(dawns_ballad ${SOURCES})
 
 # Include Vulkan
@@ -21,7 +21,7 @@ target_include_directories(dawns_ballad PRIVATE ${Vulkan_INCLUDE_DIRS})
 # Enable FetchContent module
 include(FetchContent)
 
-# Include SDL3
+# Fetch and include SDL3
 FetchContent_Declare(
     SDL3
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
