@@ -18,7 +18,7 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(dawns_ballad PRIVATE ${Vulkan_LIBRARIES})
 target_include_directories(dawns_ballad PRIVATE ${Vulkan_INCLUDE_DIRS})
 
-# Enable FetchContent module
+# Enable FetchContent module and set the dir all dependencies get saved to
 include(FetchContent)
 
 # Fetch and include SDL3
