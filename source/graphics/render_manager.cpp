@@ -10,3 +10,7 @@ void Render_manager::start_up()
 void Render_manager::shut_down()
 {
 }
+
+void Render_manager::update()
+{
+}

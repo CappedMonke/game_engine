@@ -4,4 +4,5 @@ public:
 
 	void start_up();
 	void shut_down();
+	void update();
 };

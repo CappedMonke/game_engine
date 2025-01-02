@@ -18,8 +18,9 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(dawns_ballad PRIVATE ${Vulkan_LIBRARIES})
 target_include_directories(dawns_ballad PRIVATE ${Vulkan_INCLUDE_DIRS})
 
-# Enable FetchContent module and set the dir all dependencies get saved to
+# Enable FetchContent module and set the base directory
 include(FetchContent)
+set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/external)
 
 # Fetch and include SDL3
 FetchContent_Declare(
