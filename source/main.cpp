@@ -1,12 +1,10 @@
-#define SDL_MAIN_USE_CALLBACKS
+#define SDL_MAIN_USE_CALLBACKS 1
 
-#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
-#include <SDL3/SDL_video.h>
-#include <iostream>
 
 #include "graphics/render_manager.hpp"
+
 
 // =============================================================================
 // Globals
@@ -30,7 +28,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 	// Init SDL
 	if (!SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_VIDEO))
 	{
-		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_InitSubSystem error: %s", SDL_GetError());
+		SDL_Log("SDL_InitSubSystem error: %s", SDL_GetError());
 		return SDL_APP_FAILURE;
 	}
 
@@ -38,7 +36,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 	SDL_Window* window = SDL_CreateWindow(GAME_NAME, 800, 600, SDL_WINDOW_VULKAN);
 	if (!window)
 	{
-		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_CreateWindow error: %s", SDL_GetError());
+		SDL_Log("Couldn't create window: %s", SDL_GetError());
 		return SDL_APP_FAILURE;
 	}
 
@@ -50,11 +48,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
-	if (!keep_running)
-	{
-		return SDL_APP_SUCCESS;
-	}
-
 	// Update managers
 	render_manager.update();
 
@@ -63,6 +56,11 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
+	if (event->type == SDL_EVENT_QUIT)
+	{
+		return SDL_APP_SUCCESS;
+	}
+
 	return SDL_APP_CONTINUE;
 }
 
@@ -70,6 +68,4 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
 	// Shut down managers
 	render_manager.shut_down();
-
-	SDL_Quit();
 }
