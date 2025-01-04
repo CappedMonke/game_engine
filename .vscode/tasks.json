@@ -10,6 +10,14 @@
             ]
         },
         {
+            "label": "configure_debug_clang_sanitizer",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset debug_clang_sanitizer"
+            ]
+        },
+        {
             "label": "configure_debug_gnu",
             "type": "shell",
             "command": "cmake",
@@ -17,6 +25,14 @@
                 "--preset debug_gnu"
             ]
         },
+        {
+            "label": "configure_debug_gnu_sanitizer",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset debug_gnu_sanitizer"
+            ]
+        }
         {
             "label": "configure_release_clang",
             "type": "shell",
@@ -39,13 +55,16 @@
             "dependsOrder": "sequence",
             "dependsOn":[
                 "configure_debug_clang",
+                "configure_debug_clang_sanitizer",
                 "configure_debug_gnu",
+                "configure_debug_gnu_sanitizer",
                 "configure_release_clang",
                 "configure_release_gnu"
             ]
         },
         {
             "label": "build_debug_clang",
+            "hide": true,
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -55,7 +74,19 @@
             ]
         },
         {
+            "label": "build_debug_clang_sanitizer",
+            "hide": true,
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug_clang_sanitizer"
+            ]
+        },
+        {
             "label": "build_debug_gnu",
+            "hide": true,
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -65,7 +96,19 @@
             ]
         },
         {
+            "label": "build_debug_gnu_sanitizer",
+            "hide": true,
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug_gnu_sanitizer"
+            ]
+        },
+        {
             "label": "build_release_clang",
+            "hide": true,
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -76,6 +119,7 @@
         },
         {
             "label": "build_release_gnu",
+            "hide": true,
             "type": "shell",
             "command": "cmake",
             "args": [
@@ -83,6 +127,30 @@
                 "--preset",
                 "release_gnu"
             ]
+        },
+        {
+            "label": "run_debug_clang_sanitizer",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/debug_clang_sanitizer/dawns_ballad",
+            "dependsOn": "build_debug_clang_sanitizer"
+        },
+        {
+            "label": "run_debug_gnu_sanitizer",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/debug_gnu_sanitizer/dawns_ballad",
+            "dependsOn": "build_debug_gnu_sanitizer"
+        },
+        {
+            "label": "run_release_clang",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/release_clang/dawns_ballad",
+            "dependsOn": "build_release_clang"
+        },
+        {
+            "label": "run_release_gnu",
+            "type": "shell",
+            "command": "${workspaceFolder}/build/release_gnu/dawns_ballad",
+            "dependsOn": "build_release_gnu"
         }
     ]
 }

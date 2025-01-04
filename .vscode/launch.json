@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "build_debug_clang",
+            "name": "debug_clang",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/build/debug_clang/dawns_ballad",
@@ -10,28 +10,12 @@
             "preLaunchTask": "build_debug_clang"
         },
         {
-            "name": "build_debug_gnu",
+            "name": "debug_gnu",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/debug_gnu/dawns_ballad",
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build_debug_gnu"
-        },
-        {
-            "name": "build_release_clang",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/release_clang/dawns_ballad",
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "build_release_clang"
-        },
-        {
-            "name": "build_release_gnu",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/release_gnu/dawns_ballad",
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "build_release_gnu"
         }
     ]
 }

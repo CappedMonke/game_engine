@@ -20,11 +20,25 @@
             }
         },
         {
+            "name": "debug_clang_sanitizer",
+            "inherits": "debug_clang",
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
+            }
+        },
+        {
             "name": "debug_gnu",
             "inherits": "default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
+            "name": "debug_gnu_sanitizer",
+            "inherits": "debug_gnu",
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined,leak -fno-omit-frame-pointer"
             }
         },
         {
@@ -56,9 +70,19 @@
             "configurePreset": "debug_clang"
         },
         {
+            "name": "debug_clang_sanitizer",
+            "inherits": "default",
+            "configurePreset": "debug_clang_sanitizer"
+        },
+        {
             "name": "debug_gnu",
             "inherits": "default",
             "configurePreset": "debug_gnu"
+        },
+        {
+            "name": "debug_gnu_sanitizer",
+            "inherits": "default",
+            "configurePreset": "debug_gnu_sanitizer"
         },
         {
             "name": "release_clang",
