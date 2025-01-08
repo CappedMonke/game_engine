@@ -22,7 +22,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 	SDL_SetAppMetadata(GAME_NAME, GAME_VERSION, GAME_DOMAIN);
 
 	// Init SDL
-	if (!SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_VIDEO))
+	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
 	{
 		SDL_Log("SDL_InitSubSystem error: %s", SDL_GetError());
 		return SDL_APP_FAILURE;

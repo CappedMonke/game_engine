@@ -1,7 +1,10 @@
 #pragma once
 
+#include <vulkan/vulkan_core.h>
+
 
 class SDL_Window;
+class SDL_Surface;
 
 
 class Render_manager
@@ -14,5 +17,8 @@ public:
 
 private:
 
-	SDL_Window* window = nullptr;
+	SDL_Window*  window  = nullptr;
+	SDL_Surface* surface = nullptr;
+
+	VkInstance vulkan_instance;
 };
