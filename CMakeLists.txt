@@ -7,10 +7,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add exectutable
-set(SOURCES 
-    source/main.cpp 
-    source/graphics/render_manager.cpp
-)
+file(GLOB_RECURSE SOURCES source/*.cpp)
 add_executable(dawns_ballad ${SOURCES})
 
 # Include headers

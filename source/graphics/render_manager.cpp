@@ -35,12 +35,19 @@ bool Render_manager::start_up()
 		return false;
 	}
 
+	if (!SDL_Vulkan_CreateSurface(window, vulkan_instance, nullptr, &surface))
+	{
+		SDL_Log("Couldn't create Vulkan surface: %s", SDL_GetError());
+		return false;
+	}
+
 	return true;
 }
 
 void Render_manager::shut_down()
 {
-	SDL_DestroySurface(surface);
+	SDL_Vulkan_DestroySurface(vulkan_instance, surface, nullptr);
+	vkDestroyInstance(vulkan_instance, nullptr);
 	SDL_DestroyWindow(window);
 }
 

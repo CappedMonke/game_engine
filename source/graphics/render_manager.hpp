@@ -17,8 +17,7 @@ public:
 
 private:
 
-	SDL_Window*  window  = nullptr;
-	SDL_Surface* surface = nullptr;
-
-	VkInstance vulkan_instance;
+	SDL_Window*  window = nullptr;
+	VkInstance   vulkan_instance;
+	VkSurfaceKHR surface;
 };
