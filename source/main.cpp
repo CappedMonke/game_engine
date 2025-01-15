@@ -8,30 +8,32 @@
 #include "graphics/render_manager.hpp"
 
 
-// =============================================================================
+// ==========================================================================================================================
 // Globals
-// =============================================================================
+// ==========================================================================================================================
 Render_manager render_manager;
 
 
-// =============================================================================
+// ==========================================================================================================================
 // SDL Callbacks
-// =============================================================================
+// ==========================================================================================================================
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char** argv)
 {
-	SDL_SetAppMetadata(GAME_NAME, GAME_VERSION, GAME_DOMAIN);
-
-	// Init SDL
-	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
+	if (!SDL_SetAppMetadata(GAME_NAME, GAME_VERSION, GAME_DOMAIN))
 	{
-		SDL_Log("SDL_InitSubSystem error: %s", SDL_GetError());
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to set app metadata: %s", SDL_GetError());
 		return SDL_APP_FAILURE;
 	}
 
-	// Start up render manager
-	if (!render_manager.start_up())
+	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
 	{
-		SDL_Log("Render_manager::start_up error %s", SDL_GetError());
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s", SDL_GetError());
+		return SDL_APP_FAILURE;
+	}
+
+	if (!render_manager.startup())
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to start render manager: %s", SDL_GetError());
 		return SDL_APP_FAILURE;
 	}
 
@@ -57,5 +59,5 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result)
 {
-	render_manager.shut_down();
+	render_manager.shutdown();
 }

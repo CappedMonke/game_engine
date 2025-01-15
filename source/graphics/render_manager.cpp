@@ -7,46 +7,44 @@
 #include "config/application.hpp"
 
 
-bool Render_manager::start_up()
+bool Render_manager::startup()
 {
-	window = SDL_CreateWindow(GAME_NAME, 800, 600, SDL_WINDOW_VULKAN);
+	window = SDL_CreateWindow(GAME_NAME, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN & SDL_WINDOW_RESIZABLE);
 	if (!window)
 	{
-		SDL_Log("Couldn't create window: %s", SDL_GetError());
 		return false;
 	}
+
+	VkApplicationInfo app_info  = {};
+	app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	app_info.pApplicationName   = GAME_NAME;
+	app_info.applicationVersion = VK_MAKE_API_VERSION(0, 0, 0, 0);
+	app_info.pEngineName        = "No Engine";
+	app_info.engineVersion      = VK_MAKE_API_VERSION(0, 0, 0, 0);
+	app_info.apiVersion         = VK_API_VERSION_1_0;
 
 	uint32_t           count_instance_extensions;
 	const char* const* instance_extensions = SDL_Vulkan_GetInstanceExtensions(&count_instance_extensions);
-	if (!instance_extensions)
-	{
-		SDL_Log("Couldn't get instance extensions: %s", SDL_GetError());
-		return false;
-	}
 
 	VkInstanceCreateInfo create_info    = {};
+	create_info.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	create_info.pApplicationInfo        = &app_info;
 	create_info.enabledExtensionCount   = count_instance_extensions;
 	create_info.ppEnabledExtensionNames = instance_extensions;
+	create_info.enabledLayerCount       = 0;
 
 	VkResult result = vkCreateInstance(&create_info, nullptr, &vulkan_instance);
 	if (result != VK_SUCCESS)
 	{
-		SDL_Log("Couldn't create Vulkan instance: %d", result);
-		return false;
-	}
-
-	if (!SDL_Vulkan_CreateSurface(window, vulkan_instance, nullptr, &surface))
-	{
-		SDL_Log("Couldn't create Vulkan surface: %s", SDL_GetError());
+		SDL_SetError("Failed to create Vulkan instance: %d", result);
 		return false;
 	}
 
 	return true;
 }
 
-void Render_manager::shut_down()
+void Render_manager::shutdown()
 {
-	SDL_Vulkan_DestroySurface(vulkan_instance, surface, nullptr);
 	vkDestroyInstance(vulkan_instance, nullptr);
 	SDL_DestroyWindow(window);
 }
