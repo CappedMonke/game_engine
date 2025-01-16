@@ -16,6 +16,13 @@ public:
 	void shutdown();
 	void update();
 
+private:
+
+	SDL_Window*              window = nullptr;
+	VkSurfaceKHR             surface;
+	VkInstance               vulkan_instance;
+	VkDebugUtilsMessengerEXT debug_messenger;
+
 	bool create_vulkan_instance();
 	bool check_validation_layer_support();
 
@@ -27,11 +34,8 @@ public:
 	                                                     VkDebugUtilsMessageTypeFlagsEXT             message_type,
 	                                                     const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
 	                                                     void*                                       user_data);
-
-private:
-
-	SDL_Window*              window = nullptr;
-	VkSurfaceKHR             surface;
-	VkInstance               vulkan_instance;
-	VkDebugUtilsMessengerEXT debug_messenger;
+	static VkResult
+	create_debug_utils_messenger_ext(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* create_info, const VkAllocationCallbacks* allocator, VkDebugUtilsMessengerEXT* debug_messenger);
+	static void populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& create_info);
+	static void destroy_debug_utils_messenger_ext(VkInstance instance, VkDebugUtilsMessengerEXT debug_messenger, const VkAllocationCallbacks* allocator);
 };
