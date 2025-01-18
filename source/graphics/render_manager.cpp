@@ -43,17 +43,26 @@ bool Render_manager::startup()
 	create_image_views();
 	create_render_pass();
 	create_graphics_pipeline();
+	create_frame_buffers();
+	create_command_pool();
+	create_command_buffer();
+	create_sync_objects();
 
 	return true;
 }
 
 void Render_manager::shutdown()
 {
-	if (enable_validation_layers)
+	vkDeviceWaitIdle(device);
+	vkDestroySemaphore(device, image_available_semaphore, nullptr);
+	vkDestroySemaphore(device, render_finished_semaphore, nullptr);
+	vkDestroyFence(device, in_flight_fence, nullptr);
+	vkDestroyCommandPool(device, command_pool, nullptr);
+	for (auto framebuffer : swap_chain_frame_buffers)
 	{
-		destroy_debug_utils_messenger_ext(vulkan_instance, debug_messenger, nullptr);
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
 	}
-
+	vkDestroyPipeline(device, graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
 	vkDestroyRenderPass(device, render_pass, nullptr);
 	for (auto image_view : swap_chain_image_views)
@@ -63,12 +72,17 @@ void Render_manager::shutdown()
 	vkDestroySwapchainKHR(device, swap_chain, nullptr);
 	vkDestroyDevice(device, nullptr);
 	SDL_Vulkan_DestroySurface(vulkan_instance, surface, nullptr);
+	if (enable_validation_layers)
+	{
+		destroy_debug_utils_messenger_ext(vulkan_instance, debug_messenger, nullptr);
+	}
 	vkDestroyInstance(vulkan_instance, nullptr);
 	SDL_DestroyWindow(window);
 }
 
 void Render_manager::update()
 {
+	draw_frame();
 }
 
 bool Render_manager::create_vulkan_instance()
@@ -546,6 +560,13 @@ void Render_manager::create_graphics_pipeline()
 
 	VkPipelineShaderStageCreateInfo shader_stages[] = {vert_shader_stage_info, frag_shader_stage_info};
 
+	std::vector<VkDynamicState> dynamic_states = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+	VkPipelineDynamicStateCreateInfo dynamic_state = {};
+	dynamic_state.sType                            = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamic_state.dynamicStateCount                = static_cast<uint32_t>(dynamic_states.size());
+	dynamic_state.pDynamicStates                   = dynamic_states.data();
+
 	VkPipelineVertexInputStateCreateInfo vertex_input_info = {};
 	vertex_input_info.sType                                = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertex_input_info.vertexBindingDescriptionCount        = 0;
@@ -608,6 +629,26 @@ void Render_manager::create_graphics_pipeline()
 		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create pipeline layout.");
 	}
 
+	VkGraphicsPipelineCreateInfo pipeline_info = {};
+	pipeline_info.sType                        = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipeline_info.stageCount                   = 2;
+	pipeline_info.pStages                      = shader_stages;
+	pipeline_info.pVertexInputState            = &vertex_input_info;
+	pipeline_info.pInputAssemblyState          = &input_assembly;
+	pipeline_info.pViewportState               = &viewport_state;
+	pipeline_info.pRasterizationState          = &rasterizer;
+	pipeline_info.pMultisampleState            = &multisampling;
+	pipeline_info.pColorBlendState             = &color_blending;
+	pipeline_info.pDynamicState                = &dynamic_state;
+	pipeline_info.layout                       = pipeline_layout;
+	pipeline_info.renderPass                   = render_pass;
+	pipeline_info.subpass                      = 0;
+
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &graphics_pipeline))
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create pipeline.");
+	}
+
 	vkDestroyShaderModule(device, vert_shader_module, nullptr);
 	vkDestroyShaderModule(device, frag_shader_module, nullptr);
 }
@@ -633,10 +674,10 @@ std::vector<char> Render_manager::read_file(const std::string& filename)
 
 VkShaderModule Render_manager::create_shader_module(const std::vector<char>& code)
 {
-	VkShaderModuleCreateInfo create_info;
-	create_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	create_info.codeSize = code.size();
-	create_info.pCode    = reinterpret_cast<const uint32_t*>(code.data());
+	VkShaderModuleCreateInfo create_info = {};
+	create_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	create_info.codeSize                 = code.size();
+	create_info.pCode                    = reinterpret_cast<const uint32_t*>(code.data());
 
 	VkShaderModule shader_module;
 	if (vkCreateShaderModule(device, &create_info, nullptr, &shader_module) != VK_SUCCESS)
@@ -663,6 +704,14 @@ void Render_manager::create_render_pass()
 	color_attachment_ref.attachment            = 0;
 	color_attachment_ref.layout                = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	VkSubpassDependency dependency = {};
+	dependency.srcSubpass          = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass          = 0;
+	dependency.srcStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask       = 0;
+	dependency.dstStageMask        = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask       = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 	VkSubpassDescription subpass = {};
 	subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
@@ -674,9 +723,175 @@ void Render_manager::create_render_pass()
 	render_pass_info.pAttachments           = &color_attachment;
 	render_pass_info.subpassCount           = 1;
 	render_pass_info.pSubpasses             = &subpass;
+	render_pass_info.dependencyCount        = 1;
+	render_pass_info.pDependencies          = &dependency;
 
 	if (vkCreateRenderPass(device, &render_pass_info, nullptr, &render_pass))
 	{
 		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create render pass.");
 	}
+}
+
+void Render_manager::create_frame_buffers()
+{
+	swap_chain_frame_buffers.resize(swap_chain_image_views.size());
+
+	for (uint32_t i = 0; i < swap_chain_image_views.size(); i++)
+	{
+		VkImageView attachments[] = {swap_chain_image_views[i]};
+
+		VkFramebufferCreateInfo frame_buffer_info = {};
+		frame_buffer_info.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		frame_buffer_info.renderPass              = render_pass;
+		frame_buffer_info.attachmentCount         = 1;
+		frame_buffer_info.pAttachments            = attachments;
+		frame_buffer_info.width                   = swap_chain_extent.width;
+		frame_buffer_info.height                  = swap_chain_extent.height;
+		frame_buffer_info.layers                  = 1;
+
+		if (vkCreateFramebuffer(device, &frame_buffer_info, nullptr, &swap_chain_frame_buffers[i]) != VK_SUCCESS)
+		{
+			SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create framebuffer");
+		}
+	}
+}
+
+void Render_manager::create_command_pool()
+{
+	Queue_family_indices queue_family_indices = find_queue_families(physical_device);
+
+	VkCommandPoolCreateInfo pool_info = {};
+	pool_info.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	pool_info.flags                   = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	pool_info.queueFamilyIndex        = queue_family_indices.graphics_family.value();
+
+	if (vkCreateCommandPool(device, &pool_info, nullptr, &command_pool) != VK_SUCCESS)
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create command pool");
+	}
+}
+
+void Render_manager::create_command_buffer()
+{
+	VkCommandBufferAllocateInfo alloc_info = {};
+	alloc_info.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	alloc_info.commandPool                 = command_pool;
+	alloc_info.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	alloc_info.commandBufferCount          = 1;
+
+	if (vkAllocateCommandBuffers(device, &alloc_info, &command_buffer))
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create command buffer");
+	}
+}
+
+void Render_manager::record_command_buffer(VkCommandBuffer command_buffer, uint32_t image_index)
+{
+	VkCommandBufferBeginInfo begin_info = {};
+	begin_info.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+	if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS)
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to begin recording command buffer.");
+	}
+
+	VkRenderPassBeginInfo render_pass_info = {};
+	render_pass_info.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	render_pass_info.renderPass            = render_pass;
+	render_pass_info.framebuffer           = swap_chain_frame_buffers[image_index];
+	render_pass_info.renderArea.offset     = {0, 0};
+	render_pass_info.renderArea.extent     = swap_chain_extent;
+
+	VkClearValue clear_color         = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+	render_pass_info.clearValueCount = 1;
+	render_pass_info.pClearValues    = &clear_color;
+
+	vkCmdBeginRenderPass(command_buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
+
+	VkViewport viewport = {};
+	viewport.x          = 0.0f;
+	viewport.y          = 0.0f;
+	viewport.width      = static_cast<float>(swap_chain_extent.width);
+	viewport.height     = static_cast<float>(swap_chain_extent.height);
+	viewport.minDepth   = 0.0f;
+	viewport.maxDepth   = 1.0f;
+	vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+
+	VkRect2D scissors = {};
+	scissors.offset   = {0, 0};
+	scissors.extent   = swap_chain_extent;
+	vkCmdSetScissor(command_buffer, 0, 1, &scissors);
+
+	vkCmdDraw(command_buffer, 3, 1, 0, 0);
+
+	vkCmdEndRenderPass(command_buffer);
+
+	if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to record command buffer.");
+	}
+}
+
+void Render_manager::create_sync_objects()
+{
+	VkSemaphoreCreateInfo semaphore_info = {};
+	semaphore_info.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fence_info = {};
+	fence_info.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_info.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	if (vkCreateSemaphore(device, &semaphore_info, nullptr, &image_available_semaphore) != VK_SUCCESS || vkCreateSemaphore(device, &semaphore_info, nullptr, &render_finished_semaphore) != VK_SUCCESS
+	    || vkCreateFence(device, &fence_info, nullptr, &in_flight_fence) != VK_SUCCESS)
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create semaphores.");
+	}
+}
+
+void Render_manager::draw_frame()
+{
+	vkWaitForFences(device, 1, &in_flight_fence, VK_TRUE, UINT64_MAX);
+	vkResetFences(device, 1, &in_flight_fence);
+
+	uint32_t image_index;
+	vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX, image_available_semaphore, VK_NULL_HANDLE, &image_index);
+
+	vkResetCommandBuffer(command_buffer, 0);
+	record_command_buffer(command_buffer, image_index);
+
+	VkSubmitInfo submit_info{};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore          waitSemaphores[] = {image_available_semaphore};
+	VkPipelineStageFlags waitStages[]     = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+	submit_info.waitSemaphoreCount        = 1;
+	submit_info.pWaitSemaphores           = waitSemaphores;
+	submit_info.pWaitDstStageMask         = waitStages;
+
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers    = &command_buffer;
+
+	VkSemaphore signalSemaphores[]   = {render_finished_semaphore};
+	submit_info.signalSemaphoreCount = 1;
+	submit_info.pSignalSemaphores    = signalSemaphores;
+
+	if (vkQueueSubmit(graphics_queue, 1, &submit_info, in_flight_fence) != VK_SUCCESS)
+	{
+		throw std::runtime_error("failed to submit draw command buffer!");
+	}
+
+	VkPresentInfoKHR present_info{};
+	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+	present_info.waitSemaphoreCount = 1;
+	present_info.pWaitSemaphores    = signalSemaphores;
+
+	VkSwapchainKHR swapChains[] = {swap_chain};
+	present_info.swapchainCount = 1;
+	present_info.pSwapchains    = swapChains;
+
+	present_info.pImageIndices = &image_index;
+
+	vkQueuePresentKHR(present_queue, &present_info);
 }

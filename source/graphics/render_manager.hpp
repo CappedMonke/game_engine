@@ -38,21 +38,28 @@ public:
 
 private:
 
-	SDL_Window*              window = nullptr;
-	VkSurfaceKHR             surface;
-	VkInstance               vulkan_instance;
-	VkDebugUtilsMessengerEXT debug_messenger;
-	VkPhysicalDevice         physical_device = VK_NULL_HANDLE;
-	VkDevice                 device;
-	VkQueue                  graphics_queue;
-	VkQueue                  present_queue;
-	VkSwapchainKHR           swap_chain;
-	std::vector<VkImage>     swap_chain_images;
-	std::vector<VkImageView> swap_chain_image_views;
-	VkFormat                 swap_chain_image_format;
-	VkExtent2D               swap_chain_extent;
-	VkRenderPass             render_pass;
-	VkPipelineLayout         pipeline_layout;
+	SDL_Window*                window = nullptr;
+	VkSurfaceKHR               surface;
+	VkInstance                 vulkan_instance;
+	VkDebugUtilsMessengerEXT   debug_messenger;
+	VkPhysicalDevice           physical_device = VK_NULL_HANDLE;
+	VkDevice                   device;
+	VkQueue                    graphics_queue;
+	VkQueue                    present_queue;
+	VkSwapchainKHR             swap_chain;
+	std::vector<VkImage>       swap_chain_images;
+	std::vector<VkImageView>   swap_chain_image_views;
+	VkFormat                   swap_chain_image_format;
+	VkExtent2D                 swap_chain_extent;
+	VkRenderPass               render_pass;
+	VkPipelineLayout           pipeline_layout;
+	VkPipeline                 graphics_pipeline;
+	std::vector<VkFramebuffer> swap_chain_frame_buffers;
+	VkCommandPool              command_pool;
+	VkCommandBuffer            command_buffer;
+	VkSemaphore                image_available_semaphore;
+	VkSemaphore                render_finished_semaphore;
+	VkFence                    in_flight_fence;
 
 	bool create_vulkan_instance();
 	void create_surface();
@@ -89,4 +96,10 @@ private:
 	static std::vector<char> read_file(const std::string& filename);
 	VkShaderModule           create_shader_module(const std::vector<char>& code);
 	void                     create_render_pass();
+	void                     create_frame_buffers();
+	void                     create_command_pool();
+	void                     create_command_buffer();
+	void                     record_command_buffer(VkCommandBuffer command_buffer, uint32_t image_index);
+	void                     create_sync_objects();
+	void                     draw_frame();
 };
