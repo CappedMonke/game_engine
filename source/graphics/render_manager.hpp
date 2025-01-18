@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -50,6 +51,8 @@ private:
 	std::vector<VkImageView> swap_chain_image_views;
 	VkFormat                 swap_chain_image_format;
 	VkExtent2D               swap_chain_extent;
+	VkRenderPass             render_pass;
+	VkPipelineLayout         pipeline_layout;
 
 	bool create_vulkan_instance();
 	void create_surface();
@@ -82,4 +85,8 @@ private:
 	void               create_swapchain();
 	void               create_image_views();
 	void               create_graphics_pipeline();
+
+	static std::vector<char> read_file(const std::string& filename);
+	VkShaderModule           create_shader_module(const std::vector<char>& code);
+	void                     create_render_pass();
 };
