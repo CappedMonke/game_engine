@@ -16,6 +16,14 @@
             "program": "${workspaceFolder}/build/debug_gnu/dawns_ballad",
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build_debug_gnu"
+        },
+        {
+            "name": "release_clang",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release_clang/dawns_ballad",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build_release_clang"
         }
     ]
 }

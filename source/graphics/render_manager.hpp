@@ -38,28 +38,29 @@ public:
 
 private:
 
-	SDL_Window*                window = nullptr;
-	VkSurfaceKHR               surface;
-	VkInstance                 vulkan_instance;
-	VkDebugUtilsMessengerEXT   debug_messenger;
-	VkPhysicalDevice           physical_device = VK_NULL_HANDLE;
-	VkDevice                   device;
-	VkQueue                    graphics_queue;
-	VkQueue                    present_queue;
-	VkSwapchainKHR             swap_chain;
-	std::vector<VkImage>       swap_chain_images;
-	std::vector<VkImageView>   swap_chain_image_views;
-	VkFormat                   swap_chain_image_format;
-	VkExtent2D                 swap_chain_extent;
-	VkRenderPass               render_pass;
-	VkPipelineLayout           pipeline_layout;
-	VkPipeline                 graphics_pipeline;
-	std::vector<VkFramebuffer> swap_chain_frame_buffers;
-	VkCommandPool              command_pool;
-	VkCommandBuffer            command_buffer;
-	VkSemaphore                image_available_semaphore;
-	VkSemaphore                render_finished_semaphore;
-	VkFence                    in_flight_fence;
+	SDL_Window*                  window = nullptr;
+	VkSurfaceKHR                 surface;
+	VkInstance                   vulkan_instance;
+	VkDebugUtilsMessengerEXT     debug_messenger;
+	VkPhysicalDevice             physical_device = VK_NULL_HANDLE;
+	VkDevice                     device;
+	VkQueue                      graphics_queue;
+	VkQueue                      present_queue;
+	VkSwapchainKHR               swap_chain;
+	std::vector<VkImage>         swap_chain_images;
+	std::vector<VkImageView>     swap_chain_image_views;
+	VkFormat                     swap_chain_image_format;
+	VkExtent2D                   swap_chain_extent;
+	VkRenderPass                 render_pass;
+	VkPipelineLayout             pipeline_layout;
+	VkPipeline                   graphics_pipeline;
+	std::vector<VkFramebuffer>   swap_chain_frame_buffers;
+	VkCommandPool                command_pool;
+	std::vector<VkCommandBuffer> command_buffers;
+	std::vector<VkSemaphore>     image_available_semaphores;
+	std::vector<VkSemaphore>     render_finished_semaphores;
+	std::vector<VkFence>         in_flight_fences;
+	uint32_t                     current_frame = 0;
 
 	bool create_vulkan_instance();
 	void create_surface();
@@ -98,7 +99,7 @@ private:
 	void                     create_render_pass();
 	void                     create_frame_buffers();
 	void                     create_command_pool();
-	void                     create_command_buffer();
+	void                     create_command_buffers();
 	void                     record_command_buffer(VkCommandBuffer command_buffer, uint32_t image_index);
 	void                     create_sync_objects();
 	void                     draw_frame();

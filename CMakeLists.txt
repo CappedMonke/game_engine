@@ -30,7 +30,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${Vulkan_INCLUDE_DIRS})
 # Enable FetchContent module
 # ===========================================================================================================================
 include(FetchContent)
-set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/external)
 
 # ===========================================================================================================================
 # Fetch and include SDL3
