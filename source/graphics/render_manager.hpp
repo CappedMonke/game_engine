@@ -61,6 +61,8 @@ private:
 	std::vector<VkSemaphore>     render_finished_semaphores;
 	std::vector<VkFence>         in_flight_fences;
 	uint32_t                     current_frame = 0;
+	std::vector<VkFence>         in_flight_fences;
+	bool                         framebuffer_resized = false;
 
 	bool create_vulkan_instance();
 	void create_surface();
@@ -91,6 +93,8 @@ private:
 	VkPresentModeKHR   choose_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes);
 	VkExtent2D         choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
 	void               create_swapchain();
+	void               recreate_swapchain();
+	void               cleanup_swapchain();
 	void               create_image_views();
 	void               create_graphics_pipeline();
 
@@ -103,4 +107,5 @@ private:
 	void                     record_command_buffer(VkCommandBuffer command_buffer, uint32_t image_index);
 	void                     create_sync_objects();
 	void                     draw_frame();
+	static void              framebuffer_resize_callback(SDL_Window* window, int width, int height);
 };

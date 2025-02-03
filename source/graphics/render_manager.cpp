@@ -23,7 +23,6 @@ const std::vector<const char*> validation_layers    = {"VK_LAYER_KHRONOS_validat
 const std::vector<const char*> device_extensions    = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 const int                      MAX_FRAMES_IN_FLIGHT = 2;
 
-
 bool Render_manager::startup()
 {
 	window = SDL_CreateWindow(GAME_NAME, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN);
@@ -54,33 +53,32 @@ bool Render_manager::startup()
 
 void Render_manager::shutdown()
 {
-	vkDeviceWaitIdle(device);
+	cleanup_swapchain();
+
+	vkDestroyPipeline(device, graphics_pipeline, nullptr);
+	vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
+
+	vkDestroyRenderPass(device, render_pass, nullptr);
+
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		vkDestroySemaphore(device, image_available_semaphores[i], nullptr);
 		vkDestroySemaphore(device, render_finished_semaphores[i], nullptr);
 		vkDestroyFence(device, in_flight_fences[i], nullptr);
 	}
+
 	vkDestroyCommandPool(device, command_pool, nullptr);
-	for (auto framebuffer : swap_chain_frame_buffers)
-	{
-		vkDestroyFramebuffer(device, framebuffer, nullptr);
-	}
-	vkDestroyPipeline(device, graphics_pipeline, nullptr);
-	vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
-	vkDestroyRenderPass(device, render_pass, nullptr);
-	for (auto image_view : swap_chain_image_views)
-	{
-		vkDestroyImageView(device, image_view, nullptr);
-	}
-	vkDestroySwapchainKHR(device, swap_chain, nullptr);
+
 	vkDestroyDevice(device, nullptr);
-	SDL_Vulkan_DestroySurface(vulkan_instance, surface, nullptr);
+
 	if (enable_validation_layers)
 	{
 		destroy_debug_utils_messenger_ext(vulkan_instance, debug_messenger, nullptr);
 	}
+
 	vkDestroyInstance(vulkan_instance, nullptr);
+	SDL_Vulkan_DestroySurface(vulkan_instance, surface, nullptr);
+
 	SDL_DestroyWindow(window);
 }
 
@@ -514,6 +512,32 @@ void Render_manager::create_swapchain()
 	swap_chain_extent       = extent;
 }
 
+void Render_manager::recreate_swapchain()
+{
+	vkDeviceWaitIdle(device);
+
+	cleanup_swapchain();
+
+	create_swapchain();
+	create_image_views();
+	create_frame_buffers();
+}
+
+void Render_manager::cleanup_swapchain()
+{
+	for (auto framebuffer : swap_chain_frame_buffers)
+	{
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+	}
+
+	for (auto image_view : swap_chain_image_views)
+	{
+		vkDestroyImageView(device, image_view, nullptr);
+	}
+
+	vkDestroySwapchainKHR(device, swap_chain, nullptr);
+}
+
 void Render_manager::create_image_views()
 {
 	swap_chain_image_views.resize(swap_chain_images.size());
@@ -865,10 +889,22 @@ void Render_manager::create_sync_objects()
 void Render_manager::draw_frame()
 {
 	vkWaitForFences(device, 1, &in_flight_fences[current_frame], VK_TRUE, UINT64_MAX);
-	vkResetFences(device, 1, &in_flight_fences[current_frame]);
 
 	uint32_t image_index;
-	vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX, image_available_semaphores[current_frame], VK_NULL_HANDLE, &image_index);
+	VkResult result = vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX, image_available_semaphores[current_frame], VK_NULL_HANDLE, &image_index);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebuffer_resized)
+	{
+		framebuffer_resized = true;
+		recreate_swapchain();
+	}
+	else if (result != VK_SUCCESS)
+	{
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to acquire swap chain image!");
+	}
+
+	vkResetFences(device, 1, &in_flight_fences[current_frame]);
+
+	current_frame = (current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 	vkResetCommandBuffer(command_buffers[current_frame], 0);
 	record_command_buffer(command_buffers[current_frame], image_index);
@@ -909,4 +945,8 @@ void Render_manager::draw_frame()
 	vkQueuePresentKHR(present_queue, &present_info);
 
 	current_frame = (current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void Render_manager::framebuffer_resize_callback(SDL_Window* window, int width, int height)
+{
 }
